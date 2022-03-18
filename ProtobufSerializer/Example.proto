@@ -1,0 +1,7 @@
+﻿syntax = "proto3";
+
+message Example {
+  string name = 1;
+  int32 age = 3;
+  int64 stars_in_galaxy = 5;
+}

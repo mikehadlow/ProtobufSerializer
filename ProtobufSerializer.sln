@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31919.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtobufSerializer", "ProtobufSerializer\ProtobufSerializer.csproj", "{1B3A535C-7F98-4F9D-9BA0-876C6E01C28B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1B3A535C-7F98-4F9D-9BA0-876C6E01C28B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B3A535C-7F98-4F9D-9BA0-876C6E01C28B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B3A535C-7F98-4F9D-9BA0-876C6E01C28B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B3A535C-7F98-4F9D-9BA0-876C6E01C28B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A5015AF3-44E4-43A8-8B24-4E38CF8267F8}
+	EndGlobalSection
+EndGlobal
