@@ -2,6 +2,8 @@
 
 This is a simple example of how to use `Google.Protobuf` without code generation.
 
+Read the blog post here: [How to use Google.Protobuf without code generation in C#](https://mikehadlow.com/posts/use-google-protobuf-without-code-generation/)
+
 It demonstrates a simple protobuf serializer/deserializer that can create and receive ad-hoc messages.
 
 This is .NET 6 solution. It should build and run directly from Visual Studio 2022.
