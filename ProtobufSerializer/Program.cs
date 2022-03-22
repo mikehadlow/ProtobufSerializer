@@ -9,11 +9,12 @@ public static class Program
     {
         // Given Example.proto, create a new Serializer instance
         // passing in a dictionary listing the field tags and types.
-        var serializer = new Serializer(new Dictionary<uint, Type> 
+        var serializer = new Serializer(new Dictionary<uint, IProtoType> 
         { 
-            [1] = typeof(string),
-            [3] = typeof(int),
-            [5] = typeof(long),
+            [1] = ProtoType.String,
+            [3] = ProtoType.Int32,
+            [5] = ProtoType.Int64,
+            [7] = ProtoType.Repeated(ProtoType.Int32),
         });
 
         // Demonstrate usage
@@ -27,12 +28,15 @@ public static class Program
 
     public static void ShouldBeAbleToSerializeAndDeserializeMessage(Serializer serializer)
     {
+        WriteLine("\nSerialize and Deserialize\n");
+
         // Create a new ad-hoc message, specifying tags and values.
         var example = new Dictionary<uint, object>
         {
             [1] = "Superman",
             [3] = 570,
-            [5] = long.MaxValue
+            [5] = long.MaxValue,
+            [7] = new object[] { 1, int.MaxValue, 3 }
         };
 
         // use the no-code-gen serializer to serialize the message to protobuf.
@@ -44,21 +48,22 @@ public static class Program
         // use the no-code-gen serializer to deserialize the protobuf message.
         var result = serializer.Deserialize(protobufBytes);
 
-        WriteLine($"result.Count = {result.Count}");
-        WriteLine($"result[1] = {result[1]}");
-        WriteLine($"result[3] = {result[3]}");
-        WriteLine($"result[5] = {result[5]}");
+        serializer.MessageDefinition.WriteValue(result);
     }
 
     public static void ShouldBeAbleToDeserializeMessage(Serializer serializer)
     {
+        WriteLine("\nDeserialize\n");
+
         // Create a new instance of the protoc code generated type Example.
-        var example = new Example 
-        { 
+        var example = new Example
+        {
             Name = "Superman",
             Age = 570,
             StarsInGalaxy = long.MaxValue
         };
+
+        example.Scores.AddRange(new[] { 1, int.MaxValue, 3 });
 
         // Serialize example to protobuf using its code generated serializer.
         var protobufBytes = example.ToByteArray();
@@ -69,20 +74,20 @@ public static class Program
         // use the no-code-gen serializer to deserialize the protobuf message.
         var result = serializer.Deserialize(protobufBytes);
 
-        WriteLine($"result.Count = {result.Count}");
-        WriteLine($"result[1] = {result[1]}");
-        WriteLine($"result[3] = {result[3]}");
-        WriteLine($"result[5] = {result[5]}");
+        serializer.MessageDefinition.WriteValue(result);
     }
 
     public static void ShouldBeAbleToSerializeMessage(Serializer serializer)
     {
+        WriteLine("\nSerialize\n");
+
         // Create a new ad-hoc message, specifying tags and values.
         var example = new Dictionary<uint, object>
         {
             [1] = "Superman",
             [3] = 570,
-            [5] = long.MaxValue
+            [5] = long.MaxValue,
+            [7] = new object[] { 1, int.MaxValue, 3 }
         };
 
         // use the no-code-gen serializer to serialize the message to protobuf.
@@ -98,5 +103,32 @@ public static class Program
         WriteLine($"result.Name = {result.Name}");
         WriteLine($"result.Age = {result.Age}");
         WriteLine($"result.StarsInGalaxy = {result.StarsInGalaxy}");
+        WriteLine($"result.Scores = {string.Join(',', result.Scores.ToArray() )}");
+    }
+
+    public static void WriteValue(this IDictionary<uint, IProtoType> messageDefinition, IDictionary<uint, object> value)
+    {
+        foreach(var (key, item) in value)
+        {
+            if(!messageDefinition.ContainsKey(key))
+            {
+                throw new InvalidOperationException($"Invalid key: {key}");
+            }
+
+            if(messageDefinition[key] is ProtoRepeated)
+            {
+                var array = (object[])item;
+                Write($"[{key}] = ( ");
+                foreach(var element in array)
+                {
+                    Write($"{element} ");
+                }
+                WriteLine(")");
+            }
+            else
+            {
+                WriteLine($"[{key}] = {item}");
+            }
+        }
     }
 }

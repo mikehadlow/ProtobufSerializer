@@ -22,12 +22,13 @@ public static partial class ExampleReflection {
   static ExampleReflection() {
     byte[] descriptorData = global::System.Convert.FromBase64String(
         string.Concat(
-          "Cg1FeGFtcGxlLnByb3RvIj0KB0V4YW1wbGUSDAoEbmFtZRgBIAEoCRILCgNh",
-          "Z2UYAyABKAUSFwoPc3RhcnNfaW5fZ2FsYXh5GAUgASgDYgZwcm90bzM="));
+          "Cg1FeGFtcGxlLnByb3RvIk0KB0V4YW1wbGUSDAoEbmFtZRgBIAEoCRILCgNh",
+          "Z2UYAyABKAUSFwoPc3RhcnNfaW5fZ2FsYXh5GAUgASgDEg4KBnNjb3JlcxgH",
+          "IAMoBWIGcHJvdG8z"));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
         new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-          new pbr::GeneratedClrTypeInfo(typeof(global::Example), global::Example.Parser, new[]{ "Name", "Age", "StarsInGalaxy" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(typeof(global::Example), global::Example.Parser, new[]{ "Name", "Age", "StarsInGalaxy", "Scores" }, null, null, null, null)
         }));
   }
   #endregion
@@ -66,6 +67,7 @@ public sealed partial class Example : pb::IMessage<Example>
     name_ = other.name_;
     age_ = other.age_;
     starsInGalaxy_ = other.starsInGalaxy_;
+    scores_ = other.scores_.Clone();
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -107,6 +109,16 @@ public sealed partial class Example : pb::IMessage<Example>
     }
   }
 
+  /// <summary>Field number for the "scores" field.</summary>
+  public const int ScoresFieldNumber = 7;
+  private static readonly pb::FieldCodec<int> _repeated_scores_codec
+      = pb::FieldCodec.ForInt32(58);
+  private readonly pbc::RepeatedField<int> scores_ = new pbc::RepeatedField<int>();
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public pbc::RepeatedField<int> Scores {
+    get { return scores_; }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   public override bool Equals(object other) {
     return Equals(other as Example);
@@ -123,6 +135,7 @@ public sealed partial class Example : pb::IMessage<Example>
     if (Name != other.Name) return false;
     if (Age != other.Age) return false;
     if (StarsInGalaxy != other.StarsInGalaxy) return false;
+    if(!scores_.Equals(other.scores_)) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -132,6 +145,7 @@ public sealed partial class Example : pb::IMessage<Example>
     if (Name.Length != 0) hash ^= Name.GetHashCode();
     if (Age != 0) hash ^= Age.GetHashCode();
     if (StarsInGalaxy != 0L) hash ^= StarsInGalaxy.GetHashCode();
+    hash ^= scores_.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -160,6 +174,7 @@ public sealed partial class Example : pb::IMessage<Example>
       output.WriteRawTag(40);
       output.WriteInt64(StarsInGalaxy);
     }
+    scores_.WriteTo(output, _repeated_scores_codec);
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -181,6 +196,7 @@ public sealed partial class Example : pb::IMessage<Example>
       output.WriteRawTag(40);
       output.WriteInt64(StarsInGalaxy);
     }
+    scores_.WriteTo(ref output, _repeated_scores_codec);
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -199,6 +215,7 @@ public sealed partial class Example : pb::IMessage<Example>
     if (StarsInGalaxy != 0L) {
       size += 1 + pb::CodedOutputStream.ComputeInt64Size(StarsInGalaxy);
     }
+    size += scores_.CalculateSize(_repeated_scores_codec);
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
     }
@@ -219,6 +236,7 @@ public sealed partial class Example : pb::IMessage<Example>
     if (other.StarsInGalaxy != 0L) {
       StarsInGalaxy = other.StarsInGalaxy;
     }
+    scores_.Add(other.scores_);
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
 
@@ -245,6 +263,11 @@ public sealed partial class Example : pb::IMessage<Example>
           StarsInGalaxy = input.ReadInt64();
           break;
         }
+        case 58:
+        case 56: {
+          scores_.AddEntriesFrom(input, _repeated_scores_codec);
+          break;
+        }
       }
     }
   #endif
@@ -269,6 +292,11 @@ public sealed partial class Example : pb::IMessage<Example>
         }
         case 40: {
           StarsInGalaxy = input.ReadInt64();
+          break;
+        }
+        case 58:
+        case 56: {
+          scores_.AddEntriesFrom(ref input, _repeated_scores_codec);
           break;
         }
       }

@@ -8,16 +8,17 @@ namespace ProtobufSerializer;
 /// Has many limitations!
 /// 1. Tags must be maximum 31 (because we only support single byte tags).
 /// 2. Only int, long, and string currently supported.
-/// 3. No arrays or sub types supported.
+/// 3. Only packed arrays (of numbers) supported.
+/// 4. No sub types.
 /// </summary>
 public class Serializer
 {
-    private readonly IDictionary<uint, Type> messageDefinition;
+    public IDictionary<uint, IProtoType> MessageDefinition { get; }
     private readonly HashSet<uint> fieldSet;
 
-    public Serializer(IDictionary<uint, Type> messageDefinition)
+    public Serializer(IDictionary<uint, IProtoType> messageDefinition)
     {
-        this.messageDefinition = messageDefinition;
+        MessageDefinition = messageDefinition;
         fieldSet = new HashSet<uint>(messageDefinition.Keys);
     }
 
@@ -35,53 +36,17 @@ public class Serializer
         foreach(var (key, input) in value)
         {
             output.WriteRawTag(CreateTag(key));
-            switch (messageDefinition[key])
-            {
-                case Type t when t == typeof(int):
-                    output.WriteInt32((int)(input ?? 0));
-                    break;
-                case Type t when t == typeof(long):
-                    output.WriteInt64((long)(input ?? 0));
-                    break;
-                case Type t when t == typeof(string):
-                    output.WriteString((string)(input ?? ""));
-                    break;
-                default:
-                    throw new InvalidOperationException($"Invalid type.");
-            }
+            MessageDefinition[key].Write(output, input);
         }
         output.CheckNoSpaceLeft();
         return bytes;
 
         int CalculateMessageSize(IDictionary<uint, object> value)
-        {
-            var size = 0;
-            foreach(var (key, input) in value)
-            {
-                size += 1 + messageDefinition[key] switch
-                {
-                    Type t when t == typeof(int) =>  CodedOutputStream.ComputeInt32Size((int)(input ?? 0)),
-                    Type t when t == typeof(long) =>  CodedOutputStream.ComputeInt64Size((long)(input ?? 0)),
-                    Type t when t == typeof(string) =>  CodedOutputStream.ComputeStringSize((string)(input ?? "")),
-                    Type t => throw new InvalidOperationException($"Unsupported type {t.Name}")
-                };
-            }
-            return size;
-        }
+            => value.Sum(x => 1 + MessageDefinition[x.Key].ComputeSize(x.Value));
 
         // tag byte format is AAAAA_BBB where A bits are the tag number and B bits are the wire type.
         byte CreateTag(uint key)
-        {
-            uint wiretype = messageDefinition[key] switch 
-            { 
-                Type t when t == typeof(int) => 0,
-                Type t when t == typeof(long) => 0,
-                Type t when t == typeof(string) => 2, // delimited
-                Type t => throw new InvalidOperationException($"Unsupported type {t.Name}")
-            };
-
-            return BitConverter.GetBytes((key << 3) + wiretype)[0];
-        }
+            => BitConverter.GetBytes((key << 3) + MessageDefinition[key].WireType)[0];
     }
 
     public IDictionary<uint, object> Deserialize(byte[] bytes)
@@ -94,27 +59,90 @@ public class Serializer
         {
             var field = tag >> 3;
 
-            if(!messageDefinition.ContainsKey(field))
+            if(!MessageDefinition.ContainsKey(field))
             {
                 throw new InvalidOperationException($"Unexpected field value: {field}");
             }
-
-            switch (messageDefinition[field])
-            {
-                case Type t when t == typeof(int):
-                    value.Add(field, input.ReadInt32());
-                    break;
-                case Type t when t == typeof(long):
-                    value.Add(field, input.ReadInt64());
-                    break;
-                case Type t when t == typeof(string):
-                    value.Add(field, input.ReadString());
-                    break;
-                default:
-                    throw new InvalidOperationException($"Invalid type.");
-            }
+            value.Add(field, MessageDefinition[field].Read(input));
         }
 
         return value;
+    }
+}
+
+public interface IProtoType 
+{ 
+    uint WireType { get; }
+    int ComputeSize(object input);
+    void Write(CodedOutputStream output, object input);
+    object Read(CodedInputStream input);
+}
+
+public static class ProtoType
+{
+    public static IProtoType Int32 => new ProtoInt32();
+    public static IProtoType Int64 => new ProtoInt64();
+    public static IProtoType String => new ProtoString();
+    public static IProtoType Repeated(IProtoType protoType) => new ProtoRepeated(protoType);
+}
+
+public struct ProtoInt32 : IProtoType 
+{ 
+    public uint WireType => 0;
+    public int ComputeSize(object input) => CodedOutputStream.ComputeInt32Size((int)input);
+    public void Write(CodedOutputStream output, object input) => output.WriteInt32((int)input);
+    public object Read(CodedInputStream input) => input.ReadInt32();
+}
+
+public struct ProtoInt64 : IProtoType 
+{ 
+    public uint WireType => 0; 
+    public int ComputeSize(object input) => CodedOutputStream.ComputeInt64Size((long)input);
+    public void Write(CodedOutputStream output, object input) => output.WriteInt64((long)input);
+    public object Read(CodedInputStream input) => input.ReadInt64();
+}
+
+public struct ProtoString : IProtoType 
+{ 
+    public uint WireType => 2; 
+    public int ComputeSize(object input) => CodedOutputStream.ComputeStringSize((string)input);
+    public void Write(CodedOutputStream output, object input) => output.WriteString((string)input);
+    public object Read(CodedInputStream input) => input.ReadString();
+}
+
+public record ProtoRepeated(IProtoType ProtoType) : IProtoType
+{
+    public uint WireType => 2;
+
+    public int ComputeSize(object input)
+    {
+        var array = (object[])input;
+        var bodySize = ComputeBodySize(array);
+        return CodedOutputStream.ComputeLengthSize(bodySize) + bodySize;
+    }
+
+    private int ComputeBodySize(object[] array) => array.Sum(x => ProtoType.ComputeSize(x));
+
+    public void Write(CodedOutputStream output, object input)
+    {
+        var items = (object[])input;
+        output.WriteLength(ComputeBodySize(items));
+        foreach(var item in items)
+        {
+            ProtoType.Write(output, item);
+        }
+    }
+
+    public object Read(CodedInputStream input)
+    {
+        var size = input.ReadLength();
+        var endOfBody = input.Position + size;
+
+        var items = new List<object>();
+        while(input.Position < endOfBody)
+        {
+            items.Add(ProtoType.Read(input));
+        }
+        return items.ToArray();
     }
 }

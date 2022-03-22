@@ -4,4 +4,5 @@ message Example {
   string name = 1;
   int32 age = 3;
   int64 stars_in_galaxy = 5;
+  repeated int32 scores = 7;
 }
