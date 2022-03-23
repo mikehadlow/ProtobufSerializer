@@ -5,4 +5,5 @@ message Example {
   int32 age = 3;
   int64 stars_in_galaxy = 5;
   repeated int32 scores = 7;
+  repeated string children = 9;
 }

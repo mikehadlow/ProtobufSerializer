@@ -7,8 +7,8 @@ namespace ProtobufSerializer;
 /// 
 /// Has many limitations!
 /// 1. Tags must be maximum 31 (because we only support single byte tags).
-/// 2. Only int, long, and string currently supported.
-/// 3. Only packed arrays (of numbers) supported.
+/// 2. Only int, long, string currently supported.
+/// 3. Repeated fields of above types only.
 /// 4. No sub types.
 /// </summary>
 public class Serializer
@@ -35,18 +35,13 @@ public class Serializer
 
         foreach(var (key, input) in value)
         {
-            output.WriteRawTag(CreateTag(key));
-            MessageDefinition[key].Write(output, input);
+            MessageDefinition[key].WriteWithTag(output, input, key);
         }
         output.CheckNoSpaceLeft();
         return bytes;
 
         int CalculateMessageSize(IDictionary<uint, object> value)
-            => value.Sum(x => 1 + MessageDefinition[x.Key].ComputeSize(x.Value));
-
-        // tag byte format is AAAAA_BBB where A bits are the tag number and B bits are the wire type.
-        byte CreateTag(uint key)
-            => BitConverter.GetBytes((key << 3) + MessageDefinition[key].WireType)[0];
+            => value.Sum(x => MessageDefinition[x.Key].ComputeSizeWithTag(x.Value));
     }
 
     public IDictionary<uint, object> Deserialize(byte[] bytes)
@@ -63,10 +58,36 @@ public class Serializer
             {
                 throw new InvalidOperationException($"Unexpected field value: {field}");
             }
-            value.Add(field, MessageDefinition[field].Read(input));
+            value.AddOrAppend(field, MessageDefinition[field].Read(input));
         }
 
         return value;
+    }
+}
+
+public static class ValueExtensions
+{
+    public static void AddOrAppend(this IDictionary<uint, object> value, uint field, object item)
+    {
+        if(value.ContainsKey(field))
+        {
+            // this must be a repeated field
+            if(value[field] is object[] objectArray && item is object[] items)
+            {
+                var newArray = new object[objectArray.Length + items.Length];
+                objectArray.CopyTo(newArray, 0);
+                items.CopyTo(newArray, objectArray.Length);
+                value[field] = newArray;
+            }
+            else
+            {
+                throw new InvalidOperationException("Expected a repeated field here.");
+            }
+        }
+        else
+        {
+            value.Add(field, item);
+        }
     }
 }
 
@@ -74,7 +95,16 @@ public interface IProtoType
 { 
     uint WireType { get; }
     int ComputeSize(object input);
+    int ComputeSizeWithTag(object input) => 1 + ComputeSize(input);
     void Write(CodedOutputStream output, object input);
+
+    // tag byte format is AAAAA_BBB where A bits are the tag number and B bits are the wire type.
+    void WriteWithTag(CodedOutputStream output, object input, uint key)
+    {
+        output.WriteRawTag(BitConverter.GetBytes((key << 3) + WireType)[0]);
+        Write(output, input);
+    }
+
     object Read(CodedInputStream input);
 }
 
@@ -114,6 +144,8 @@ public record ProtoRepeated(IProtoType ProtoType) : IProtoType
 {
     public uint WireType => 2;
 
+    private readonly bool IsPackedRepeatedField = ProtoType.WireType == 0;
+
     public int ComputeSize(object input)
     {
         var array = (object[])input;
@@ -121,28 +153,64 @@ public record ProtoRepeated(IProtoType ProtoType) : IProtoType
         return CodedOutputStream.ComputeLengthSize(bodySize) + bodySize;
     }
 
+    public int ComputeSizeWithTag(object input)
+    {
+        if(IsPackedRepeatedField)
+        {
+            return 1 + ComputeSize(input);
+        }
+        else
+        {
+            var array = (object[])input;
+            return array.Sum(x => 1 + ProtoType.ComputeSize(x));
+        }
+    }
+
     private int ComputeBodySize(object[] array) => array.Sum(x => ProtoType.ComputeSize(x));
 
     public void Write(CodedOutputStream output, object input)
+        => throw new InvalidOperationException("Cannot call Write() on a ProtoRepeated field.");
+
+    public void WriteWithTag(CodedOutputStream output, object input, uint key)
     {
         var items = (object[])input;
-        output.WriteLength(ComputeBodySize(items));
-        foreach(var item in items)
+        if (IsPackedRepeatedField)
         {
-            ProtoType.Write(output, item);
+            output.WriteRawTag(BitConverter.GetBytes((key << 3) + WireType)[0]);
+            output.WriteLength(ComputeBodySize(items));
+            foreach(var item in items)
+            {
+                ProtoType.Write(output, item);
+            }
+        }
+        else
+        {
+            foreach(var item in items)
+            {
+                ProtoType.WriteWithTag(output, item, key);
+            }
         }
     }
 
     public object Read(CodedInputStream input)
     {
-        var size = input.ReadLength();
-        var endOfBody = input.Position + size;
-
         var items = new List<object>();
-        while(input.Position < endOfBody)
+
+        if(IsPackedRepeatedField)
+        {
+            var size = input.ReadLength();
+            var endOfBody = input.Position + size;
+
+            while(input.Position < endOfBody)
+            {
+                items.Add(ProtoType.Read(input));
+            }
+        }
+        else
         {
             items.Add(ProtoType.Read(input));
         }
+
         return items.ToArray();
     }
 }

@@ -15,6 +15,7 @@ public static class Program
             [3] = ProtoType.Int32,
             [5] = ProtoType.Int64,
             [7] = ProtoType.Repeated(ProtoType.Int32),
+            [9] = ProtoType.Repeated(ProtoType.String)
         });
 
         // Demonstrate usage
@@ -34,9 +35,10 @@ public static class Program
         var example = new Dictionary<uint, object>
         {
             [1] = "Superman",
-            [3] = 570,
+            [7] = new object[] { 1, int.MaxValue, 3 },
             [5] = long.MaxValue,
-            [7] = new object[] { 1, int.MaxValue, 3 }
+            [3] = 570,
+            [9] = new object[] { "one", "two", "three" }
         };
 
         // use the no-code-gen serializer to serialize the message to protobuf.
@@ -64,6 +66,7 @@ public static class Program
         };
 
         example.Scores.AddRange(new[] { 1, int.MaxValue, 3 });
+        example.Children.AddRange(new[] { "one", "two", "three" });
 
         // Serialize example to protobuf using its code generated serializer.
         var protobufBytes = example.ToByteArray();
@@ -87,7 +90,8 @@ public static class Program
             [1] = "Superman",
             [3] = 570,
             [5] = long.MaxValue,
-            [7] = new object[] { 1, int.MaxValue, 3 }
+            [7] = new object[] { 1, int.MaxValue, 3 },
+            [9] = new object[] { "one", "two", "three" }
         };
 
         // use the no-code-gen serializer to serialize the message to protobuf.
@@ -103,7 +107,8 @@ public static class Program
         WriteLine($"result.Name = {result.Name}");
         WriteLine($"result.Age = {result.Age}");
         WriteLine($"result.StarsInGalaxy = {result.StarsInGalaxy}");
-        WriteLine($"result.Scores = {string.Join(',', result.Scores.ToArray() )}");
+        WriteLine($"result.Scores = {string.Join(", ", result.Scores.ToArray() )}");
+        WriteLine($"result.Children = {string.Join(", ", result.Children.ToArray() )}");
     }
 
     public static void WriteValue(this IDictionary<uint, IProtoType> messageDefinition, IDictionary<uint, object> value)
