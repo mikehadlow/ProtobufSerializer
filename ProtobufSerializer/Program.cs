@@ -15,7 +15,12 @@ public static class Program
             [3] = ProtoType.Int32,
             [5] = ProtoType.Int64,
             [7] = ProtoType.Repeated(ProtoType.Int32),
-            [9] = ProtoType.Repeated(ProtoType.String)
+            [9] = ProtoType.Repeated(ProtoType.String),
+            [11] = ProtoType.Embedded(new Dictionary<uint, IProtoType> 
+            { 
+                [1] = ProtoType.Int32,
+                [3] = ProtoType.String
+            })
         });
 
         // Demonstrate usage
@@ -38,7 +43,12 @@ public static class Program
             [7] = new object[] { 1, int.MaxValue, 3 },
             [5] = long.MaxValue,
             [3] = 570,
-            [9] = new object[] { "one", "two", "three" }
+            [9] = new object[] { "one", "two", "three" },
+            [11] = new Dictionary<uint, object>
+            {
+                [1] = int.MaxValue,
+                [3] = "Ford Focus"
+            }
         };
 
         // use the no-code-gen serializer to serialize the message to protobuf.
@@ -62,7 +72,12 @@ public static class Program
         {
             Name = "Superman",
             Age = 570,
-            StarsInGalaxy = long.MaxValue
+            StarsInGalaxy = long.MaxValue,
+            Car = new Car
+            {
+                Miles = int.MaxValue,
+                Model = "Ford Focus"
+            }
         };
 
         example.Scores.AddRange(new[] { 1, int.MaxValue, 3 });
@@ -91,7 +106,12 @@ public static class Program
             [3] = 570,
             [5] = long.MaxValue,
             [7] = new object[] { 1, int.MaxValue, 3 },
-            [9] = new object[] { "one", "two", "three" }
+            [9] = new object[] { "one", "two", "three" },
+            [11] = new Dictionary<uint, object>
+            {
+                [1] = int.MaxValue,
+                [3] = "Ford Focus"
+            }
         };
 
         // use the no-code-gen serializer to serialize the message to protobuf.
@@ -109,9 +129,11 @@ public static class Program
         WriteLine($"result.StarsInGalaxy = {result.StarsInGalaxy}");
         WriteLine($"result.Scores = {string.Join(", ", result.Scores.ToArray() )}");
         WriteLine($"result.Children = {string.Join(", ", result.Children.ToArray() )}");
+        WriteLine($"result.Car.Miles = {result.Car.Miles}");
+        WriteLine($"result.Car.Model = {result.Car.Model}");
     }
 
-    public static void WriteValue(this IDictionary<uint, IProtoType> messageDefinition, IDictionary<uint, object> value)
+    public static void WriteValue(this IDictionary<uint, IProtoType> messageDefinition, IDictionary<uint, object> value, string indent = "")
     {
         foreach(var (key, item) in value)
         {
@@ -123,16 +145,20 @@ public static class Program
             if(messageDefinition[key] is ProtoRepeated)
             {
                 var array = (object[])item;
-                Write($"[{key}] = ( ");
+                Write($"{indent}[{key}] = ( ");
                 foreach(var element in array)
                 {
                     Write($"{element} ");
                 }
                 WriteLine(")");
             }
+            else if(messageDefinition[key] is ProtoEmbedded protoEmbedded)
+            {
+                WriteValue(protoEmbedded.MessageDefinition, (IDictionary<uint, object>)item, indent + "    ");
+            }
             else
             {
-                WriteLine($"[{key}] = {item}");
+                WriteLine($"{indent}[{key}] = {item}");
             }
         }
     }

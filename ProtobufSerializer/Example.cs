@@ -22,13 +22,15 @@ public static partial class ExampleReflection {
   static ExampleReflection() {
     byte[] descriptorData = global::System.Convert.FromBase64String(
         string.Concat(
-          "Cg1FeGFtcGxlLnByb3RvIl8KB0V4YW1wbGUSDAoEbmFtZRgBIAEoCRILCgNh",
+          "Cg1FeGFtcGxlLnByb3RvInIKB0V4YW1wbGUSDAoEbmFtZRgBIAEoCRILCgNh",
           "Z2UYAyABKAUSFwoPc3RhcnNfaW5fZ2FsYXh5GAUgASgDEg4KBnNjb3JlcxgH",
-          "IAMoBRIQCghjaGlsZHJlbhgJIAMoCWIGcHJvdG8z"));
+          "IAMoBRIQCghjaGlsZHJlbhgJIAMoCRIRCgNjYXIYCyABKAsyBC5DYXIiIwoD",
+          "Q2FyEg0KBW1pbGVzGAEgASgFEg0KBW1vZGVsGAMgASgJYgZwcm90bzM="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
         new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-          new pbr::GeneratedClrTypeInfo(typeof(global::Example), global::Example.Parser, new[]{ "Name", "Age", "StarsInGalaxy", "Scores", "Children" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(typeof(global::Example), global::Example.Parser, new[]{ "Name", "Age", "StarsInGalaxy", "Scores", "Children", "Car" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::Car), global::Car.Parser, new[]{ "Miles", "Model" }, null, null, null, null)
         }));
   }
   #endregion
@@ -69,6 +71,7 @@ public sealed partial class Example : pb::IMessage<Example>
     starsInGalaxy_ = other.starsInGalaxy_;
     scores_ = other.scores_.Clone();
     children_ = other.children_.Clone();
+    car_ = other.car_ != null ? other.car_.Clone() : null;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -130,6 +133,17 @@ public sealed partial class Example : pb::IMessage<Example>
     get { return children_; }
   }
 
+  /// <summary>Field number for the "car" field.</summary>
+  public const int CarFieldNumber = 11;
+  private global::Car car_;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public global::Car Car {
+    get { return car_; }
+    set {
+      car_ = value;
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   public override bool Equals(object other) {
     return Equals(other as Example);
@@ -148,6 +162,7 @@ public sealed partial class Example : pb::IMessage<Example>
     if (StarsInGalaxy != other.StarsInGalaxy) return false;
     if(!scores_.Equals(other.scores_)) return false;
     if(!children_.Equals(other.children_)) return false;
+    if (!object.Equals(Car, other.Car)) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -159,6 +174,7 @@ public sealed partial class Example : pb::IMessage<Example>
     if (StarsInGalaxy != 0L) hash ^= StarsInGalaxy.GetHashCode();
     hash ^= scores_.GetHashCode();
     hash ^= children_.GetHashCode();
+    if (car_ != null) hash ^= Car.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -189,6 +205,10 @@ public sealed partial class Example : pb::IMessage<Example>
     }
     scores_.WriteTo(output, _repeated_scores_codec);
     children_.WriteTo(output, _repeated_children_codec);
+    if (car_ != null) {
+      output.WriteRawTag(90);
+      output.WriteMessage(Car);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -212,6 +232,10 @@ public sealed partial class Example : pb::IMessage<Example>
     }
     scores_.WriteTo(ref output, _repeated_scores_codec);
     children_.WriteTo(ref output, _repeated_children_codec);
+    if (car_ != null) {
+      output.WriteRawTag(90);
+      output.WriteMessage(Car);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -232,6 +256,9 @@ public sealed partial class Example : pb::IMessage<Example>
     }
     size += scores_.CalculateSize(_repeated_scores_codec);
     size += children_.CalculateSize(_repeated_children_codec);
+    if (car_ != null) {
+      size += 1 + pb::CodedOutputStream.ComputeMessageSize(Car);
+    }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
     }
@@ -254,6 +281,12 @@ public sealed partial class Example : pb::IMessage<Example>
     }
     scores_.Add(other.scores_);
     children_.Add(other.children_);
+    if (other.car_ != null) {
+      if (car_ == null) {
+        Car = new global::Car();
+      }
+      Car.MergeFrom(other.Car);
+    }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
 
@@ -289,6 +322,13 @@ public sealed partial class Example : pb::IMessage<Example>
           children_.AddEntriesFrom(input, _repeated_children_codec);
           break;
         }
+        case 90: {
+          if (car_ == null) {
+            Car = new global::Car();
+          }
+          input.ReadMessage(Car);
+          break;
+        }
       }
     }
   #endif
@@ -322,6 +362,221 @@ public sealed partial class Example : pb::IMessage<Example>
         }
         case 74: {
           children_.AddEntriesFrom(ref input, _repeated_children_codec);
+          break;
+        }
+        case 90: {
+          if (car_ == null) {
+            Car = new global::Car();
+          }
+          input.ReadMessage(Car);
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+public sealed partial class Car : pb::IMessage<Car>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<Car> _parser = new pb::MessageParser<Car>(() => new Car());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public static pb::MessageParser<Car> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::ExampleReflection.Descriptor.MessageTypes[1]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public Car() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public Car(Car other) : this() {
+    miles_ = other.miles_;
+    model_ = other.model_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public Car Clone() {
+    return new Car(this);
+  }
+
+  /// <summary>Field number for the "miles" field.</summary>
+  public const int MilesFieldNumber = 1;
+  private int miles_;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public int Miles {
+    get { return miles_; }
+    set {
+      miles_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "model" field.</summary>
+  public const int ModelFieldNumber = 3;
+  private string model_ = "";
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public string Model {
+    get { return model_; }
+    set {
+      model_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public override bool Equals(object other) {
+    return Equals(other as Car);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public bool Equals(Car other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (Miles != other.Miles) return false;
+    if (Model != other.Model) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (Miles != 0) hash ^= Miles.GetHashCode();
+    if (Model.Length != 0) hash ^= Model.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (Miles != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(Miles);
+    }
+    if (Model.Length != 0) {
+      output.WriteRawTag(26);
+      output.WriteString(Model);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (Miles != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(Miles);
+    }
+    if (Model.Length != 0) {
+      output.WriteRawTag(26);
+      output.WriteString(Model);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public int CalculateSize() {
+    int size = 0;
+    if (Miles != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(Miles);
+    }
+    if (Model.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(Model);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public void MergeFrom(Car other) {
+    if (other == null) {
+      return;
+    }
+    if (other.Miles != 0) {
+      Miles = other.Miles;
+    }
+    if (other.Model.Length != 0) {
+      Model = other.Model;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+      switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          Miles = input.ReadInt32();
+          break;
+        }
+        case 26: {
+          Model = input.ReadString();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+      switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          Miles = input.ReadInt32();
+          break;
+        }
+        case 26: {
+          Model = input.ReadString();
           break;
         }
       }
