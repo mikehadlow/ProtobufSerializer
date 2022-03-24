@@ -6,7 +6,7 @@ message Example {
   int64 stars_in_galaxy = 5;
   repeated int32 scores = 7;
   repeated string children = 9;
-  Car car = 11;
+  Car car = 101;
 }
 
 message Car {

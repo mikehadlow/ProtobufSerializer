@@ -6,10 +6,9 @@ namespace ProtobufSerializer;
 /// Very simple no-code-gen protobuf serializer.
 /// 
 /// Has many limitations!
-/// 1. Tags must be maximum 31 (because we only support single byte tags).
 /// 2. Only int, long, string currently supported.
-/// 3. Repeated fields of above types only.
-/// 4. No sub types.
+/// 3. Embedded messages supported.
+/// 4. Repeated fields of above types only.
 /// </summary>
 public class Serializer
 {
@@ -73,7 +72,7 @@ public static class ValueExtensions
     public static int CalculateMessageSize(
         this IDictionary<uint, IProtoType> messageDefinition, 
         IDictionary<uint, object> value)
-        => value.Sum(x => messageDefinition[x.Key].ComputeSizeWithTag(x.Value));
+        => value.Sum(x => messageDefinition[x.Key].ComputeSizeWithTag(x.Value, (int)x.Key));
 
     public static void Write(
         this IDictionary<uint, IProtoType> messageDefinition, 
@@ -113,13 +112,14 @@ public interface IProtoType
 { 
     uint WireType { get; }
     int ComputeSize(object input);
-    int ComputeSizeWithTag(object input) => 1 + ComputeSize(input);
+    int ComputeSizeWithTag(object input, int fieldNumber) 
+        => CodedOutputStream.ComputeTagSize(fieldNumber) + ComputeSize(input);
     void Write(CodedOutputStream output, object input);
 
     // tag byte format is AAAAA_BBB where A bits are the tag number and B bits are the wire type.
     void WriteWithTag(CodedOutputStream output, object input, uint key)
     {
-        output.WriteRawTag(BitConverter.GetBytes((key << 3) + WireType)[0]);
+        output.WriteTag((key << 3) | WireType);
         Write(output, input);
     }
 
@@ -173,16 +173,17 @@ public record ProtoRepeated(IProtoType ProtoType) : IProtoType
         return CodedOutputStream.ComputeLengthSize(bodySize) + bodySize;
     }
 
-    public int ComputeSizeWithTag(object input)
+    public int ComputeSizeWithTag(object input, int fieldNumber)
     {
+        var tagSize = CodedOutputStream.ComputeTagSize(fieldNumber);
         if(IsPackedRepeatedField)
         {
-            return 1 + ComputeSize(input);
+            return tagSize + ComputeSize(input);
         }
         else
         {
             var array = (object[])input;
-            return array.Sum(x => 1 + ProtoType.ComputeSize(x));
+            return array.Sum(x => tagSize + ProtoType.ComputeSize(x));
         }
     }
 
@@ -196,7 +197,7 @@ public record ProtoRepeated(IProtoType ProtoType) : IProtoType
         var items = (object[])input;
         if (IsPackedRepeatedField)
         {
-            output.WriteRawTag(BitConverter.GetBytes((key << 3) + WireType)[0]);
+            output.WriteTag((key << 3) | WireType);
             output.WriteLength(ComputeBodySize(items));
             foreach(var item in items)
             {

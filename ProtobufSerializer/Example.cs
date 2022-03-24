@@ -24,7 +24,7 @@ public static partial class ExampleReflection {
         string.Concat(
           "Cg1FeGFtcGxlLnByb3RvInIKB0V4YW1wbGUSDAoEbmFtZRgBIAEoCRILCgNh",
           "Z2UYAyABKAUSFwoPc3RhcnNfaW5fZ2FsYXh5GAUgASgDEg4KBnNjb3JlcxgH",
-          "IAMoBRIQCghjaGlsZHJlbhgJIAMoCRIRCgNjYXIYCyABKAsyBC5DYXIiIwoD",
+          "IAMoBRIQCghjaGlsZHJlbhgJIAMoCRIRCgNjYXIYZSABKAsyBC5DYXIiIwoD",
           "Q2FyEg0KBW1pbGVzGAEgASgFEg0KBW1vZGVsGAMgASgJYgZwcm90bzM="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
@@ -134,7 +134,7 @@ public sealed partial class Example : pb::IMessage<Example>
   }
 
   /// <summary>Field number for the "car" field.</summary>
-  public const int CarFieldNumber = 11;
+  public const int CarFieldNumber = 101;
   private global::Car car_;
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   public global::Car Car {
@@ -206,7 +206,7 @@ public sealed partial class Example : pb::IMessage<Example>
     scores_.WriteTo(output, _repeated_scores_codec);
     children_.WriteTo(output, _repeated_children_codec);
     if (car_ != null) {
-      output.WriteRawTag(90);
+      output.WriteRawTag(170, 6);
       output.WriteMessage(Car);
     }
     if (_unknownFields != null) {
@@ -233,7 +233,7 @@ public sealed partial class Example : pb::IMessage<Example>
     scores_.WriteTo(ref output, _repeated_scores_codec);
     children_.WriteTo(ref output, _repeated_children_codec);
     if (car_ != null) {
-      output.WriteRawTag(90);
+      output.WriteRawTag(170, 6);
       output.WriteMessage(Car);
     }
     if (_unknownFields != null) {
@@ -257,7 +257,7 @@ public sealed partial class Example : pb::IMessage<Example>
     size += scores_.CalculateSize(_repeated_scores_codec);
     size += children_.CalculateSize(_repeated_children_codec);
     if (car_ != null) {
-      size += 1 + pb::CodedOutputStream.ComputeMessageSize(Car);
+      size += 2 + pb::CodedOutputStream.ComputeMessageSize(Car);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -322,7 +322,7 @@ public sealed partial class Example : pb::IMessage<Example>
           children_.AddEntriesFrom(input, _repeated_children_codec);
           break;
         }
-        case 90: {
+        case 810: {
           if (car_ == null) {
             Car = new global::Car();
           }
@@ -364,7 +364,7 @@ public sealed partial class Example : pb::IMessage<Example>
           children_.AddEntriesFrom(ref input, _repeated_children_codec);
           break;
         }
-        case 90: {
+        case 810: {
           if (car_ == null) {
             Car = new global::Car();
           }

@@ -16,7 +16,7 @@ public static class Program
             [5] = ProtoType.Int64,
             [7] = ProtoType.Repeated(ProtoType.Int32),
             [9] = ProtoType.Repeated(ProtoType.String),
-            [11] = ProtoType.Embedded(new Dictionary<uint, IProtoType> 
+            [101] = ProtoType.Embedded(new Dictionary<uint, IProtoType> 
             { 
                 [1] = ProtoType.Int32,
                 [3] = ProtoType.String
@@ -44,7 +44,7 @@ public static class Program
             [5] = long.MaxValue,
             [3] = 570,
             [9] = new object[] { "one", "two", "three" },
-            [11] = new Dictionary<uint, object>
+            [101] = new Dictionary<uint, object>
             {
                 [1] = int.MaxValue,
                 [3] = "Ford Focus"
@@ -107,7 +107,7 @@ public static class Program
             [5] = long.MaxValue,
             [7] = new object[] { 1, int.MaxValue, 3 },
             [9] = new object[] { "one", "two", "three" },
-            [11] = new Dictionary<uint, object>
+            [101] = new Dictionary<uint, object>
             {
                 [1] = int.MaxValue,
                 [3] = "Ford Focus"
@@ -154,7 +154,9 @@ public static class Program
             }
             else if(messageDefinition[key] is ProtoEmbedded protoEmbedded)
             {
+                WriteLine($"{indent}[{key}] = {{");
                 WriteValue(protoEmbedded.MessageDefinition, (IDictionary<uint, object>)item, indent + "    ");
+                WriteLine($"{indent}}}");
             }
             else
             {
